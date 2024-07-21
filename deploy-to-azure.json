@@ -18,12 +18,6 @@
           },
           "location": {
             "value": "[parameters('location')]"
-          },
-          "azureSentinelConnectionId": {
-            "value": "[parameters('azureSentinelConnectionId')]"
-          },
-          "azureSentinelConnectionName": {
-            "value": "[parameters('azureSentinelConnectionName')]"
           }
         }
       }
@@ -38,22 +32,9 @@
     },
     "location": {
       "type": "string",
-      "defaultValue": "West US",
+      "defaultValue": "UK West",  // Updated default location
       "metadata": {
         "description": "Location for the Logic App"
-      }
-    },
-    "azureSentinelConnectionId": {
-      "type": "string",
-      "metadata": {
-        "description": "ID of the Azure Sentinel connection."
-      }
-    },
-    "azureSentinelConnectionName": {
-      "type": "string",
-      "defaultValue": "azuresentinel-2",
-      "metadata": {
-        "description": "Name of the Azure Sentinel connection."
       }
     }
   }
