@@ -13,21 +13,33 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "parameter1": {
-            "value": "[parameters('parameter1')]"
+          "logicAppName": {
+            "value": "[parameters('logicAppName')]"
           },
-          "parameter2": {
-            "value": "[parameters('parameter2')]"
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "azureSentinelConnectionId": {
+            "value": "[parameters('azureSentinelConnectionId')]"
+          },
+          "azureSentinelConnectionName": {
+            "value": "[parameters('azureSentinelConnectionName')]"
           }
         }
       }
     }
   ],
   "parameters": {
-    "parameter1": {
+    "logicAppName": {
       "type": "string"
     },
-    "parameter2": {
+    "location": {
+      "type": "string"
+    },
+    "azureSentinelConnectionId": {
+      "type": "string"
+    },
+    "azureSentinelConnectionName": {
       "type": "string"
     }
   }
