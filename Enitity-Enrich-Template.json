@@ -1136,7 +1136,7 @@
                                             "inputs": {
                                                 "method": "GET",
                                                 "queries": {
-                                                    "apiKey": "[parameters('whoisxmlapi')]",
+                                                    "apiKey": "[parameters('WhoisApiKey')]",
                                                     "domainName": "@variables('WhoHost')",
                                                     "outputFormat": "JSON"
                                                 },
