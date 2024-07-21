@@ -31,16 +31,30 @@
   ],
   "parameters": {
     "logicAppName": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Logic App"
+      }
     },
     "location": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "West US",
+      "metadata": {
+        "description": "Location for the Logic App"
+      }
     },
     "azureSentinelConnectionId": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "ID of the Azure Sentinel connection."
+      }
     },
     "azureSentinelConnectionName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "azuresentinel-2",
+      "metadata": {
+        "description": "Name of the Azure Sentinel connection."
+      }
     }
   }
 }
