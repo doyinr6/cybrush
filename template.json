@@ -1,116 +1,121 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "logicAppName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the Logic App"
-      }
-    },
-    "location": {
-      "type": "string",
-      "defaultValue": "UK West",
-      "metadata": {
-        "description": "Location for the Logic App"
-      }
-    },
-    "azureSentinelConnectionId": {
-      "type": "string",
-      "defaultValue": "PLACEHOLDER_CONNECTION_ID",
-      "metadata": {
-        "description": "ID of the Azure Sentinel connection. Update after deployment."
-      }
-    },
-    "azureSentinelConnectionName": {
-      "type": "string",
-      "defaultValue": "PLACEHOLDER_CONNECTION_NAME",
-      "metadata": {
-        "description": "Name of the Azure Sentinel connection. Update after deployment."
-      }
-    }
-  },
-  "resources": [
-    {
-      "type": "Microsoft.Logic/workflows",
-      "apiVersion": "2017-07-01",
-      "name": "[parameters('logicAppName')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "state": "Enabled",
-        "definition": {
-          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-          "contentVersion": "1.0.0.0",
-          "parameters": {
-            "$connections": {
-              "defaultValue": {},
-              "type": "Object"
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App"
             }
-          },
-          "triggers": {
-            "Microsoft_Sentinel_incident": {
-              "type": "ApiConnectionWebhook",
-              "inputs": {
-                "body": {
-                  "callback_url": "@{listCallbackUrl()}"
-                },
-                "host": {
-                  "connection": {
-                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
-                  }
-                },
-                "path": "/incident-creation"
-              }
-            }
-          },
-          "actions": {
-            "For_each": {
-              "foreach": "@triggerBody()?['object']?['properties']?['Alerts']",
-              "actions": {
-                "Set_variable": {
-                  "runAfter": {},
-                  "type": "SetVariable",
-                  "inputs": {
-                    "name": "fire",
-                    "value": "FIRE"
-                  }
-                }
-              },
-              "runAfter": {
-                "Initialize_variable": [
-                  "Succeeded"
-                ]
-              },
-              "type": "Foreach"
-            },
-            "Initialize_variable": {
-              "runAfter": {},
-              "type": "InitializeVariable",
-              "inputs": {
-                "variables": [
-                  {
-                    "name": "fire",
-                    "type": "string",
-                    "value": "sAS"
-                  }
-                ]
-              }
-            }
-          },
-          "outputs": {}
         },
-        "parameters": {
-          "$connections": {
-            "value": {
-              "azuresentinel": {
-                "connectionId": "[parameters('azureSentinelConnectionId')]",
-                "connectionName": "[parameters('azureSentinelConnectionName')]",
-                "id": "[parameters('azureSentinelConnectionId')]"
-              }
+        "location": {
+            "type": "string",
+            "defaultValue": "UK West",
+            "metadata": {
+                "description": "Location for the Logic App"
             }
-          }
+        },
+        "azureSentinelConnectionId": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
+            }
+        },
+        "azureSentinelConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        },
+        "apiManagementResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the API Management service."
+            }
         }
-      }
-    }
-  ]
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('logicAppName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "For_each": {
+                            "foreach": "@triggerBody()?['object']?['properties']?['Alerts']",
+                            "actions": {
+                                "Set_variable": {
+                                    "runAfter": {},
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "fire",
+                                        "value": "FIRE"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Initialize_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Initialize_variable": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "fire",
+                                        "type": "string",
+                                        "value": "sAS"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[parameters('azureSentinelConnectionId')]",
+                                "connectionName": "[parameters('azureSentinelConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
 }
