@@ -1,61 +1,59 @@
 {
-  "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json",
-  "contentVersion": "1.0.0.0",
-  "resources": [
-    {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2021-04-01",
-      "name": "nestedTemplate",
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "https://raw.githubusercontent.com/doyinr6/cybrush/main/template.json",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "logicAppName": {
-            "value": "[parameters('logicAppName')]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "azureSentinelConnectionId": {
-            "value": "PLACEHOLDER_CONNECTION_ID"  // Default placeholder
-          },
-          "azureSentinelConnectionName": {
-            "value": "PLACEHOLDER_CONNECTION_NAME"  // Default placeholder
-          }
+    "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "nestedTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/doyinr6/cybrush/main/template.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "logicAppName": {
+                        "value": "[parameters('logicAppName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "azureSentinelConnectionId": {
+                        "value": "[parameters('azureSentinelConnectionId')]"
+                    },
+                    "azureSentinelConnectionName": {
+                        "value": "[parameters('azureSentinelConnectionName')]"
+                    }
+                }
+            }
         }
-      }
+    ],
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "UK West",
+            "metadata": {
+                "description": "Location for the Logic App"
+            }
+        },
+        "azureSentinelConnectionId": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
+            }
+        },
+        "azureSentinelConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        }
     }
-  ],
-  "parameters": {
-    "logicAppName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the Logic App"
-      }
-    },
-    "location": {
-      "type": "string",
-      "defaultValue": "UK West",
-      "metadata": {
-        "description": "Location for the Logic App"
-      }
-    },
-    "azureSentinelConnectionId": {
-      "type": "string",
-      "defaultValue": "PLACEHOLDER_CONNECTION_ID",
-      "metadata": {
-        "description": "ID of the Azure Sentinel connection. Update after deployment."
-      }
-    },
-    "azureSentinelConnectionName": {
-      "type": "string",
-      "defaultValue": "PLACEHOLDER_CONNECTION_NAME",
-      "metadata": {
-        "description": "Name of the Azure Sentinel connection. Update after deployment."
-      }
-    }
-  }
 }
