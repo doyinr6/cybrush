@@ -1,6 +1,33 @@
 {
     "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "UK West",
+            "metadata": {
+                "description": "Location for the Logic App"
+            }
+        },
+        "azureSentinelConnectionId": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
+            }
+        },
+        "azureSentinelConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        }
+    },
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
@@ -28,32 +55,5 @@
                 }
             }
         }
-    ],
-    "parameters": {
-        "logicAppName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Logic App"
-            }
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "UK West",
-            "metadata": {
-                "description": "Location for the Logic App"
-            }
-        },
-        "azureSentinelConnectionId": {
-            "type": "string",
-            "metadata": {
-                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
-            }
-        },
-        "azureSentinelConnectionName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Azure Sentinel connection."
-            }
-        }
-    }
+    ]
 }
