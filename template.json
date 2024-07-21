@@ -26,12 +26,6 @@
             "metadata": {
                 "description": "Name of the Azure Sentinel connection."
             }
-        },
-        "apiManagementResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "ID of the API Management service."
-            }
         }
     },
     "variables": {},
