@@ -10,7 +10,7 @@
         },
         "location": {
             "type": "string",
-            "defaultValue": "UK West",
+            "defaultValue": "ukwest",
             "metadata": {
                 "description": "Location for the Logic App"
             }
