@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/63932eea-18d2-4277-8211-c6f39775d95c)# Deploy entity enrichment
+# Deploy entity enrichment Playbook
 
 In this PLaybook, the aim is to enrich Azure Sentinel incidents with data from entities such as file hashes, URLs, and IPs using Microsoft Azure's Logic Apps.
 The setup involves defining a Logic App in Azure, which initiates based on a trigger related to incident entities in Azure Sentinel. This Logic App then fetches and processes data from related entities using APIs from VirusTotal and AbuseIPDB, two services known for their threat intelligence data.
