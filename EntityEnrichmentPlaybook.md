@@ -6,7 +6,7 @@ These enriched details are then added as comments to the incidents, thus enhanci
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdoyinr6%2Fcybrush%2Fmain%2Fdeployentity.json)
 
-To setup upon clicking the deploy button brings you to this deployment tab.
+**Clicking the deploy button will direct you to the deployment tab for setup**.
 
 ![image](https://github.com/user-attachments/assets/e11c4462-05fe-4df3-a0f5-0ab6475f1498)
 
