@@ -19,4 +19,5 @@ These enriched details are then added as comments to the incidents, thus enhanci
 - API Keys: Enter the necessary API keys for VirusTotal, AbusedIPDB, and Whois. These keys enable your Logic App to fetch threat intelligence data, enhancing the incident data within Azure Sentinel.
 
 **Check out this link for a comprehensive step-by-step guide on how to build this from the ground up.**
+
 https://medium.com/cybrush-entity-enrichment-in-microsoft-sentinel/entity-enrichment-using-logic-apps-virustotal-and-abuseipdb-ac8e2f0b9c3c
