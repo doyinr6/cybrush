@@ -36,7 +36,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/doyinr6/cybrush/main/template.json",
+                    "uri": "https://raw.githubusercontent.com/doyinr6/cybrush/main/Playbooks/template.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

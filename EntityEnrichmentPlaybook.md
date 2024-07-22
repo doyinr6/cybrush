@@ -4,7 +4,7 @@ In this PLaybook, the aim is to enrich Azure Sentinel incidents with data from e
 The setup involves defining a Logic App in Azure, which initiates based on a trigger related to incident entities in Azure Sentinel. This Logic App then fetches and processes data from related entities using APIs from VirusTotal and AbuseIPDB, two services known for their threat intelligence data.
 These enriched details are then added as comments to the incidents, thus enhancing the available incident data for analysis. Crucial to the entire process is the careful handling of sensitive data like API keys, ensuring it follows best practices for secure data management.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdoyinr6%2Fcybrush%2Fmain%2Fdeployentity.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdoyinr6%2Fcybrush%2Fmain%2FDeploymentTemplate%2Fdeployentity.json)
 
 **Clicking the deploy button will direct you to the deployment tab for setup**.
 
