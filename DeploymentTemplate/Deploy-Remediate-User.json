@@ -8,6 +8,13 @@
             "description": "The tenant ID for the Azure Active Directory."
         }
     },
+    "logicAppName": {
+        "type": "string",
+        "defaultValue": "Remediate-User-Account",
+        "metadata": {
+            "description": "The name of the Logic App."
+        }
+    },
     "client_id": {
         "type": "string",
         "metadata": {
