@@ -29,7 +29,9 @@ Click the Below to deploy to Azure.
      - `User.EnableDisableAccount.All`
      - `User.ReadWrite.All`
    - **Grant Admin Consent**.
-
+2. **Admin Permissions**:
+ - Assign the User amdinsitrator role or global admin role depending on the level of access you want to the application.
+   
 ### Deployment Form Overview for Logic App in Azure Portal
 
 **When deploying the Logic App template, you need to provide the following information:**
