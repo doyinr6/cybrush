@@ -14,12 +14,46 @@
                 "definition": {
                     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
                     "contentVersion": "1.0.0.0",
-                    "parameters": {
-                        "$connections": {
-                            "defaultValue": {},
-                            "type": "Object"
-                        }
-                    },
+                   "parameters": {
+    "Tenant_ID": {
+        "type": "string",
+        "metadata": {
+            "description": "The tenant ID for Azure AD."
+        }
+    },
+    "client_id": {
+        "type": "string",
+        "metadata": {
+            "description": "The client ID for the application."
+        }
+    },
+    "client_secret": {
+        "type": "securestring",
+        "metadata": {
+            "description": "The client secret for the application."
+        }
+    },
+    "azureSentinelConnectionId": {
+        "type": "string",
+        "metadata": {
+            "description": "The connection ID for Azure Sentinel."
+        }
+    },
+    "azureSentinelConnectionName": {
+        "type": "string",
+        "metadata": {
+            "description": "The connection name for Azure Sentinel."
+        }
+    },
+    "location": {
+        "type": "string",
+        "defaultValue": "uksouth",
+        "metadata": {
+            "description": "Location for the resources."
+        }
+    }
+}
+,
                     "triggers": {
                         "Microsoft_Sentinel_incident": {
                             "type": "ApiConnectionWebhook",

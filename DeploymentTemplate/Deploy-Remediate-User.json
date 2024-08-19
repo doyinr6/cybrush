@@ -1,53 +1,45 @@
 {
     "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
-    "parameters": {
-        "logicAppName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Logic App"
-            }
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "ukwest",
-            "metadata": {
-                "description": "Location for the Logic App"
-            }
-        },
-        "azureSentinelConnectionId": {
-            "type": "string",
-            "metadata": {
-                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
-            }
-        },
-        "azureSentinelConnectionName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Azure Sentinel connection."
-            }
-        },
-
-        "Tenant_ID": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Azure Sentinel connection."
-            }
-        },
-
-        "client_id": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Name of the Azure Sentinel connection."
-            }
-        },
-        "client_secret": {
-                "type": "securestring",
-                "metadata": {
-                    "description": "Name of the Azure Sentinel connection."
-                }
-            }  
+  "parameters": {
+    "Tenant_ID": {
+        "type": "string",
+        "metadata": {
+            "description": "The tenant ID for the Azure Active Directory."
+        }
     },
+    "client_id": {
+        "type": "string",
+        "metadata": {
+            "description": "The client ID for the application."
+        }
+    },
+    "client_secret": {
+        "type": "securestring",
+        "metadata": {
+            "description": "The client secret for the application."
+        }
+    },
+    "azureSentinelConnectionId": {
+        "type": "string",
+        "metadata": {
+            "description": "The connection ID for Azure Sentinel."
+        }
+    },
+    "azureSentinelConnectionName": {
+        "type": "string",
+        "metadata": {
+            "description": "The connection name for Azure Sentinel."
+        }
+    },
+    "location": {
+        "type": "string",
+        "defaultValue": "uksouth",
+        "metadata": {
+            "description": "Location for the resources."
+        }
+    }
+},
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
