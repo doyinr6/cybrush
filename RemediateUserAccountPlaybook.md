@@ -1,5 +1,6 @@
 
-Click the Below to deploy to Azure 
+Click the Below to deploy to Azure.
+
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdoyinr6%2Fcybrush%2Fmain%2FDeploymentTemplate%2FDeploy-Remediate-User.json)
 
  This steps provide clear and direct guide for users.
