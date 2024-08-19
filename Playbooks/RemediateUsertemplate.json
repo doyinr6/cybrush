@@ -1,7 +1,52 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+        "Tenant_ID": {
+            "type": "string",
+            "metadata": {
+                "description": "The tenant ID for Azure AD."
+            }
+        },
+        "logicAppName": {
+            "type": "string",
+            "defaultValue": "Remediate-User-Account",
+            "metadata": {
+                "description": "The name of the Logic App."
+            }
+        },
+        "client_id": {
+            "type": "string",
+            "metadata": {
+                "description": "The client ID for the application."
+            }
+        },
+        "client_secret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The client secret for the application."
+            }
+        },
+        "azureSentinelConnectionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The connection ID for Azure Sentinel."
+            }
+        },
+        "azureSentinelConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "The connection name for Azure Sentinel."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "uksouth",
+            "metadata": {
+                "description": "Location for the resources."
+            }
+        }
+    },
     "variables": {},
     "resources": [
         {
@@ -14,53 +59,12 @@
                 "definition": {
                     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
                     "contentVersion": "1.0.0.0",
-                   "parameters": {
-    "Tenant_ID": {
-        "type": "string",
-        "metadata": {
-            "description": "The tenant ID for Azure AD."
-        }
-    },
-    "logicAppName": {
-        "type": "string",
-        "defaultValue": "Remediate-User-Account",
-        "metadata": {
-            "description": "The name of the Logic App."
-        }
-    },
-    "client_id": {
-        "type": "string",
-        "metadata": {
-            "description": "The client ID for the application."
-        }
-    },
-    "client_secret": {
-        "type": "securestring",
-        "metadata": {
-            "description": "The client secret for the application."
-        }
-    },
-    "azureSentinelConnectionId": {
-        "type": "string",
-        "metadata": {
-            "description": "The connection ID for Azure Sentinel."
-        }
-    },
-    "azureSentinelConnectionName": {
-        "type": "string",
-        "metadata": {
-            "description": "The connection name for Azure Sentinel."
-        }
-    },
-    "location": {
-        "type": "string",
-        "defaultValue": "uksouth",
-        "metadata": {
-            "description": "Location for the resources."
-        }
-    }
-}
-,
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
                     "triggers": {
                         "Microsoft_Sentinel_incident": {
                             "type": "ApiConnectionWebhook",
