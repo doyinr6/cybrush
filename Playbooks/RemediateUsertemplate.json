@@ -1,0 +1,279 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "Remediate-User-Account",
+            "location": "uksouth",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_Accounts": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+                                "path": "/entities/account"
+                            }
+                        },
+                        "For_each_Account": {
+                            "foreach": "@body('Entities_-_Get_Accounts')?['Accounts']",
+                            "actions": {
+                                "Compose": {
+                                    "runAfter": {
+                                        "Parse_JSON": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Compose",
+                                    "inputs": "@{body('Parse_JSON')?['accountName']}@"
+                                },
+                                "HTTP": {
+                                    "runAfter": {
+                                        "User_acct_compose": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "uri": "https://login.microsoftonline.com/[parameters('Tenant_ID')]/oauth2/v2.0/token",
+                                        "method": "POST",
+                                        "headers": {
+                                            "Content-Type": "application/x-www-form-urlencoded"
+                                        },
+                                        "body": "client_id=[parameters('client_id')]&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default&client_secret=[parameters('client_secret')]&grant_type=client_credentials"
+                                    }
+                                },
+                                "Parse_JSON": {
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@items('For_each_Account')",
+                                        "schema": {
+                                            "properties": {
+                                                "Name": {
+                                                    "type": "string"
+                                                },
+                                                "Type": {
+                                                    "type": "string"
+                                                },
+                                                "accountName": {
+                                                    "type": "string"
+                                                },
+                                                "displayName": {
+                                                    "type": "string"
+                                                },
+                                                "friendlyName": {
+                                                    "type": "string"
+                                                },
+                                                "isDomainJoined": {
+                                                    "type": "boolean"
+                                                },
+                                                "upnSuffix": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "Parse_JSON_1": {
+                                    "runAfter": {
+                                        "HTTP": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@body('HTTP')",
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "token_type": {
+                                                    "type": "string"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer"
+                                                },
+                                                "ext_expires_in": {
+                                                    "type": "integer"
+                                                },
+                                                "access_token": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "Set_variable": {
+                                    "runAfter": {
+                                        "Parse_JSON_1": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "Access_token",
+                                        "value": "@body('Parse_JSON_1')?['access_token']"
+                                    }
+                                },
+                                "User_acct_compose": {
+                                    "runAfter": {
+                                        "Compose": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Compose",
+                                    "inputs": "@{outputs('Compose')}@{body('Parse_JSON')?['upnSuffix']}"
+                                },
+                                "HTTP_Disable_User_account": {
+                                    "runAfter": {
+                                        "Set_variable": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "uri": "https://graph.microsoft.com/v1.0/users/@{replace(outputs('User_acct_compose'), '@', '%40')}",
+                                        "method": "PATCH",
+                                        "headers": {
+                                            "Content-Type": "application/json",
+                                            "Authorization": "Bearer @{variables('Access_token')}"
+                                        },
+                                        "body": {
+                                            "accountEnabled": false
+                                        }
+                                    },
+                                    "runtimeConfiguration": {
+                                        "contentTransfer": {
+                                            "transferMode": "Chunked"
+                                        }
+                                    }
+                                },
+                                "HTTP_Password_Reset": {
+                                    "runAfter": {
+                                        "HTTP_Disable_User_account": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Http",
+                                    "inputs": {
+                                        "uri": "https://graph.microsoft.com/v1.0/users/@{replace(outputs('User_acct_compose'), '@', '%40')}",
+                                        "method": "PATCH",
+                                        "headers": {
+                                            "Content-Type": "application/json",
+                                            "Authorization": "Bearer @{variables('Access_token')}"
+                                        },
+                                        "body": {
+                                            "passwordProfile": {
+                                                "forceChangePasswordNextSignIn": true,
+                                                "forceChangePasswordNextSignInWithMfa": true,
+                                                "password": "PasGHUIword123!"
+                                            }
+                                        }
+                                    },
+                                    "runtimeConfiguration": {
+                                        "contentTransfer": {
+                                            "transferMode": "Chunked"
+                                        }
+                                    }
+                                },
+                                "Send_an_email_(V2)": {
+                                    "runAfter": {
+                                        "HTTP_Password_Reset": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": {
+                                            "To": "@outputs('User_acct_compose')",
+                                            "Subject": "Suspected user account Compromise",
+                                            "Body": "<p class=\"editor-paragraph\">Hi @{items('For_each_Account')?['Name']},</p><p class=\"editor-paragraph\"></p><br><p class=\"editor-paragraph\">We have performed investigation and as a precaution have disbaled user account and resest password.</p><p class=\"editor-paragraph\"></p><br><p class=\"editor-paragraph\">Regards.</p>",
+                                            "Importance": "Normal"
+                                        },
+                                        "path": "/v2/Mail"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Initialize_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Initialize_variable": {
+                            "runAfter": {
+                                "Entities_-_Get_Accounts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Access_token",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[parameters('azureSentinelConnectionId')]",
+                                "connectionName": "[parameters('azureSentinelConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

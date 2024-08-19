@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "ukwest",
+            "metadata": {
+                "description": "Location for the Logic App"
+            }
+        },
+        "azureSentinelConnectionId": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
+            }
+        },
+        "azureSentinelConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        },
+
+        "Tenant_ID": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        },
+
+        "client_id": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        },
+        "client_secret": {
+                "type": "securestring",
+                "metadata": {
+                    "description": "Name of the Azure Sentinel connection."
+                }
+            }  
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "nestedTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/doyinr6/cybrush/main/Playbooks/RemediateUsertemplate.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "logicAppName": {
+                        "value": "[parameters('logicAppName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "azureSentinelConnectionId": {
+                        "value": "[parameters('azureSentinelConnectionId')]"
+                    },
+                    "azureSentinelConnectionName": {
+                        "value": "[parameters('azureSentinelConnectionName')]"
+                    },
+                    "Tenant_ID": {
+                        "value": "[parameters('Tenant_ID')]"
+                    },
+                    "client_secret": {
+                        "value": "[parameters('client_secret')]"     
+                    },
+                    "client_id": {
+                        "value": "[parameters('client_id')]"                  
+                    }
+                }
+            }
+        }
+    ]
+}
