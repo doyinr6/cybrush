@@ -2,8 +2,9 @@
 Click the Below to deploy to Azure.
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdoyinr6%2Fcybrush%2Fmain%2FDeploymentTemplate%2FDeploy-Remediate-User.json)
+![Uploading image.png…]()
 
- This steps provide clear and direct guide for users.
+ These steps provide clear and direct guide for users.
 ### Setting Up App Registration and Retrieving Credentials
 
 #### Step 1: Register an Application in Azure AD
