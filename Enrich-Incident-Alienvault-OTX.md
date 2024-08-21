@@ -6,6 +6,9 @@ This playbook investigates file hashes, URLs, and IP addresses for threat intell
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdoyinr6%2Fcybrush%2Fmain%2FDeploymentTemplate%2FDeploy-Alienvault-OTX.json)
 
 **Deployment Requirements:**
+
+<img width="855" alt="image" src="https://github.com/user-attachments/assets/3b28475a-07ce-43f7-9e32-e5ce69fe05df">
+
 The screen highlights the deployment form for a Logic App in the Azure Portal. Key information needed includes:
 
 - Subscription and Resource Group: Select your Azure subscription and specify a resource group.
