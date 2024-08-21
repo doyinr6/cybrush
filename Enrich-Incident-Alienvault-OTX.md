@@ -1,5 +1,6 @@
-****Playbook Overview:** **
+**Playbook Overview:**
 Investigating Indicators of Compromise with OTX AlienVault
+
 This playbook investigates file hashes, URLs, and IP addresses for threat intelligence using OTX AlienVault. It enriches Azure Sentinel incidents with a table of 2-5 descriptions related to the identified entities and their TI information.
 
 **Click Here to Deploy** :
