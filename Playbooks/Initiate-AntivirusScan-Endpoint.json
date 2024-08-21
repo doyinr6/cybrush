@@ -1,0 +1,204 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "value": "[parameters('logicAppName')]"
+        },
+        "location": {
+            "value": "[parameters('location')]"
+        },
+        "azureSentinelConnectionId": {
+            "value": "[parameters('azureSentinelConnectionId')]"
+        },
+        "azureSentinelConnectionName": {
+            "value": "[parameters('azureSentinelConnectionName')]"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "Initiate-AntivirusScan-Endpoint",
+            "location": "ukwest",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_Hosts": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+                                "path": "/entities/host"
+                            }
+                        },
+                        "For_each_Host": {
+                            "foreach": "@body('Entities_-_Get_Hosts')?['Hosts']",
+                            "actions": {
+                                "Actions_-_Run_antivirus_scan": {
+                                    "runAfter": {
+                                        "Parse_JSON_2": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": {
+                                            "Comment": "ran on current host",
+                                            "ScanType": "Full"
+                                        },
+                                        "path": "/api/machines/@{encodeURIComponent(body('Parse_JSON_2')?['hostName'])}/runAntiVirusScan"
+                                    }
+                                },
+                                "Add_comment_to_incident_(V3)": {
+                                    "runAfter": {
+                                        "Actions_-_Run_antivirus_scan": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": {
+                                            "incidentArmId": "@triggerBody()?['object']?['id']",
+                                            "message": "<p>A Scan was initiated on the destination host \"@{body('Parse_JSON_2')?['hostName']}\".</p>"
+                                        },
+                                        "path": "/Incidents/Comment"
+                                    }
+                                },
+                                "Compose_cuurent_host": {
+                                    "type": "Compose",
+                                    "inputs": "@items('For_each_Host')"
+                                },
+                                "Parse_JSON_2": {
+                                    "runAfter": {
+                                        "Compose_cuurent_host": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@outputs('Compose_cuurent_host')",
+                                        "schema": {
+                                            "properties": {
+                                                "Type": {
+                                                    "type": "string"
+                                                },
+                                                "additionalData": {
+                                                    "properties": {
+                                                        "AvStatus": {
+                                                            "type": "string"
+                                                        },
+                                                        "FQDN": {
+                                                            "type": "string"
+                                                        },
+                                                        "HealthStatus": {
+                                                            "type": "string"
+                                                        },
+                                                        "LastExternalIpAddress": {
+                                                            "type": "string"
+                                                        },
+                                                        "LastIpAddress": {
+                                                            "type": "string"
+                                                        },
+                                                        "LastSeen": {
+                                                            "type": "string"
+                                                        },
+                                                        "MdatpDeviceId": {
+                                                            "type": "string"
+                                                        },
+                                                        "OnboardingStatus": {
+                                                            "type": "string"
+                                                        },
+                                                        "RiskScore": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "friendlyName": {
+                                                    "type": "string"
+                                                },
+                                                "hostName": {
+                                                    "type": "string"
+                                                },
+                                                "osFamily": {
+                                                    "type": "string"
+                                                },
+                                                "osVersion": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_Hosts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[parameters('azureSentinelConnectionId')]",
+                                "connectionName": "[parameters('azureSentinelConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

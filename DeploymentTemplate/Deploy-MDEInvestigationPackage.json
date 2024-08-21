@@ -1,0 +1,60 @@
+{
+    "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+        "type": "string",
+        "defaultValue": "Initiate-AntivirusScan-Endpoint",
+        "metadata": {
+            "description": "The name of the Logic App."
+        }
+    },
+    "azureSentinelConnectionId": {
+        "type": "string",
+        "metadata": {
+            "description": "The connection ID for Azure Sentinel."
+        }
+    },
+    "azureSentinelConnectionName": {
+        "type": "string",
+        "metadata": {
+            "description": "The connection name for Azure Sentinel."
+        }
+    },
+    "location": {
+        "type": "string",
+        "defaultValue": "uksouth",
+        "metadata": {
+            "description": "Location for the resources."
+        }
+    }
+},
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "nestedTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/doyinr6/cybrush/main/Playbooks/RemediateUsertemplate.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "logicAppName": {
+                        "value": "[parameters('logicAppName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "azureSentinelConnectionId": {
+                        "value": "[parameters('azureSentinelConnectionId')]"
+                    },
+                    "azureSentinelConnectionName": {
+                        "value": "[parameters('azureSentinelConnectionName')]"
+                    }
+                }
+            }
+        }
+    ]
+}

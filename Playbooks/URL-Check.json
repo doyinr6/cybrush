@@ -1,0 +1,519 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "ukwest",
+            "metadata": {
+                "description": "Location for the Logic App"
+            }
+        },
+        "azureSentinelConnectionId": {
+            "type": "string",
+            "metadata": {
+                "description": "ID of the Azure Sentinel connection. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/connections/{connectionName}"
+            }
+        },
+        "azureSentinelConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure Sentinel connection."
+            }
+        },
+        "virustotalApiKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "API Key for virustotal"
+            }
+        },
+        "URLIOApiKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "URL io Api Key for hybrid analysis "
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "URL-Check",
+            "location": "ukwest",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_URLs": {
+                            "runAfter": {
+                                "Initialize_URL": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/url"
+                            }
+                        },
+                        "Initialize_URL": {
+                            "runAfter": {
+                                "Initialize_malicious_verdict": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "URL",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_malicious_verdict": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "Is Malicous",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "URL_Forloop": {
+                            "actions": {
+                                "URLS": {
+                                    "foreach": "@body('Entities_-_Get_URLs')?['URLs']",
+                                    "actions": {
+                                        "Add_comment_to_incident_(V3)": {
+                                            "runAfter": {
+                                                "Parse_JSON": [
+                                                    "Succeeded"
+                                                ],
+                                                "Parse_the_result_to_json": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "body": {
+                                                    "incidentArmId": "@triggerBody()?['object']?['id']",
+                                                    "message": "<p><em><strong>URL</strong></em>: @{replace(replace(items('URLS')?['Url'], '.', '[.]'), 'http', 'hxxp')}<br>\n<span style=\"color: rgb(226,80,65)\"><strong>URLScan.io</strong></span>- &nbsp;@{body('Parse_the_result_to_json')?['result']}<br>\n<span style=\"color: rgb(41,105,176)\"><strong>VirusTotal</strong></span>: https://www.virustotal.com/gui/url/@{body('Parse_JSON')?['data']?['id']}</p>"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "path": "/Incidents/Comment"
+                                            }
+                                        },
+                                        "Compose": {
+                                            "runAfter": {},
+                                            "type": "Compose",
+                                            "inputs": "@replace(base64(items('URLS')?['Url']), '=', '')"
+                                        },
+                                        "Compose_urlscan_http_body": {
+                                            "runAfter": {
+                                                "HTTP_TO_URLscan": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "Compose",
+                                            "inputs": "@body('HTTP_TO_URLscan')"
+                                        },
+                                        "HTTP_TO_URLscan": {
+                                            "runAfter": {
+                                                "Compose": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "Http",
+                                            "inputs": {
+                                                "body": {
+                                                    "url": "@{items('URLS')?['Url']}",
+                                                    "visibility": "private"
+                                                },
+                                                "headers": {
+                                                    "API-Key": "[parameters('URLIOApiKey')]"
+                                                },
+                                                "method": "POST",
+                                                "uri": "https://urlscan.io/api/v1/scan"
+                                            }
+                                        },
+                                        "HTTP_virustotal": {
+                                            "runAfter": {
+                                                "Compose": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "Http",
+                                            "inputs": {
+                                                "headers": {
+                                                    "x-apikey": "[parameters('virustotalApiKey')]"
+                                                },
+                                                "method": "GET",
+                                                "uri": "https://www.virustotal.com/api/v3/urls/@{outputs('Compose')}"
+                                            }
+                                        },
+                                        "Parse_JSON": {
+                                            "runAfter": {
+                                                "HTTP_virustotal": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ParseJson",
+                                            "inputs": {
+                                                "content": "@body('HTTP_virustotal')",
+                                                "schema": {
+                                                    "properties": {
+                                                        "data": {
+                                                            "properties": {
+                                                                "attributes": {
+                                                                    "properties": {
+                                                                        "categories": {
+                                                                            "properties": {
+                                                                                "BitDefender": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Forcepoint ThreatSeeker": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Sophos": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Xcitium Verdict Cloud": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "first_submission_date": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "html_meta": {
+                                                                            "properties": {
+                                                                                "color-scheme": {
+                                                                                    "items": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "type": "array"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "last_analysis_date": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "last_analysis_results": {
+                                                                            "properties": {
+                                                                                "Artists Against 419": {
+                                                                                    "properties": {
+                                                                                        "category": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "engine_name": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "method": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "result": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                },
+                                                                                "ZeroFox": {
+                                                                                    "properties": {
+                                                                                        "category": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "engine_name": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "method": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "result": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "type": "object"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "last_analysis_stats": {
+                                                                            "properties": {
+                                                                                "harmless": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "malicious": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "suspicious": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "timeout": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "undetected": {
+                                                                                    "type": "integer"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "last_final_url": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "last_http_response_code": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "last_http_response_content_length": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "last_http_response_content_sha256": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "last_http_response_headers": {
+                                                                            "properties": {
+                                                                                "Accept-Ranges": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Connection": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Content-Length": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Content-Type": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Date": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "ETag": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Keep-Alive": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Last-Modified": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Server": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "Strict-Transport-Security": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "last_modification_date": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "last_submission_date": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "redirection_chain": {
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "type": "array"
+                                                                        },
+                                                                        "reputation": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "tags": {
+                                                                            "type": "array"
+                                                                        },
+                                                                        "threat_names": {
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "type": "array"
+                                                                        },
+                                                                        "times_submitted": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "title": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "tld": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "total_votes": {
+                                                                            "properties": {
+                                                                                "harmless": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "malicious": {
+                                                                                    "type": "integer"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        },
+                                                                        "url": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                },
+                                                                "id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "links": {
+                                                                    "properties": {
+                                                                        "self": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "Parse_the_result_to_json": {
+                                            "runAfter": {
+                                                "Compose_urlscan_http_body": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ParseJson",
+                                            "inputs": {
+                                                "content": "@outputs('Compose_urlscan_http_body')",
+                                                "schema": {
+                                                    "properties": {
+                                                        "api": {
+                                                            "type": "string"
+                                                        },
+                                                        "country": {
+                                                            "type": "string"
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "options": {
+                                                            "properties": {},
+                                                            "type": "object"
+                                                        },
+                                                        "result": {
+                                                            "type": "string"
+                                                        },
+                                                        "url": {
+                                                            "type": "string"
+                                                        },
+                                                        "uuid": {
+                                                            "type": "string"
+                                                        },
+                                                        "visibility": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "runAfter": {},
+                                    "type": "Foreach"
+                                }
+                            },
+                            "runAfter": {
+                                "Entities_-_Get_URLs": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "not": {
+                                            "contains": [
+                                                "@body('Entities_-_Get_URLs')?['URLs']",
+                                                null
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "lessOrEquals": [
+                                            "@length(body('Entities_-_Get_URLs')?['URLs'])",
+                                            5
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        }
+                    },
+                    "outputs": {}
+                },
+                
+            "parameters": {
+                "$connections": {
+                    "value": {
+                        "azuresentinel": {
+                            "connectionId": "[parameters('azureSentinelConnectionId')]",
+                            "connectionName": "[parameters('azureSentinelConnectionName')]",
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', parameters('location'), '/managedApis/azuresentinel')]"
+                        }
+                    }
+                }
+            }
+
+
+            }
+        }
+    ]
+}
