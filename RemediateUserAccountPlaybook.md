@@ -1,3 +1,8 @@
+**Playbook Overview: Remediating User Accounts in Response to Incidents**
+
+
+The "Remediate User Account" playbook automatically addresses incidents involving potentially compromised user accounts by resetting the user's password, disabling the account to prevent further unauthorized access, and enforcing Multi-Factor Authentication (MFA) upon the next sign-in. This ensures that the affected accounts are swiftly and securely remediated, aligning with best practices for incident response in Azure Sentinel.
+
 
 Click the Below to deploy to Azure.
 
