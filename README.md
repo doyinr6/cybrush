@@ -3,6 +3,7 @@
 ## Overview
 
 Welcome to my repository where I share playbooks designed to automate Azure Sentinel incident response. These playbooks help reduce manual intervention and accelerate remediation.
+Inspired by this link: https://github.com/Azure/Azure-Sentinel/tree/master/Playbooks
 
 ## Available Playbooks
 
